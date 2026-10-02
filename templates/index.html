@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Chest X-ray AI Analysis</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f6fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 650px;
+            margin: 50px auto;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        h1 {
+            color: #123b5d;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 10px;
+        }
+
+        button {
+            background: #1769aa;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0d4f82;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f7f9fb;
+            border-radius: 10px;
+        }
+
+        .prediction {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1769aa;
+            margin: 15px 0;
+        }
+
+        .score {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .percentage {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .note {
+            margin-top: 25px;
+            font-size: 13px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>CHEST X-RAY AI ANALYSIS</h1>
+
+    <p class="subtitle">
+        Upload a chest X-ray image for educational AI analysis
+    </p>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <input
+            type="file"
+            name="xray"
+            accept=".jpg,.jpeg,.png"
+            required
+        >
+
+        <br>
+
+        <button type="submit">
+            ANALYZE X-RAY
+        </button>
+
+    </form>
+
+
+    {% if prediction %}
+
+    <div class="result">
+
+        <h2>Analysis Result</h2>
+
+        <div class="prediction">
+            Possible {{ prediction }}
+        </div>
+
+        <div class="score">
+            Prediction Score:
+            <strong>{{ "%.2f"|format(score) }}%</strong>
+        </div>
+
+
+        {% for item in results %}
+
+        <div class="percentage">
+            <span>{{ item.name }}</span>
+            <strong>{{ item.percentage }}%</strong>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% endif %}
+
+
+    <div class="note">
+        Educational project only.
+        This is not a medical diagnosis.
+    </div>
+
+</div>
+
+</body>
+
+</html>
