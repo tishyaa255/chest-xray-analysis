@@ -1,8 +1,5 @@
-import sys
-sys.path.insert(0, r"C:\Users\Tishya\tf220")
-
 from flask import Flask, render_template, request
-import tensorflow as tf
+from ai_edge_litert.interpreter import Interpreter
 import cv2
 import numpy as np
 import os
@@ -10,8 +7,7 @@ import os
 app = Flask(__name__)
 
 IMAGE_SIZE = 180
-
-MODEL_PATH = "xray_model.keras"
+MODEL_PATH = "xray_model.tflite"
 
 CLASS_NAMES = [
     "Cardiomegaly",
@@ -22,7 +18,12 @@ CLASS_NAMES = [
     "Tuberculosis (TB)"
 ]
 
-model = tf.keras.models.load_model(MODEL_PATH)
+# Load LiteRT model
+interpreter = Interpreter(model_path=MODEL_PATH)
+interpreter.allocate_tensors()
+
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -38,11 +39,9 @@ def home():
 
         if file:
 
-            # Save uploaded image temporarily
             image_path = "uploaded_xray.png"
             file.save(image_path)
 
-            # Read image as grayscale
             image = cv2.imread(
                 image_path,
                 cv2.IMREAD_GRAYSCALE
@@ -50,7 +49,6 @@ def home():
 
             if image is not None:
 
-                # Resize
                 image = cv2.resize(
                     image,
                     (IMAGE_SIZE, IMAGE_SIZE)
@@ -58,10 +56,9 @@ def home():
 
                 # IMPORTANT:
                 # Do NOT divide by 255.
-                # The model already has Rescaling.
+                # The model already contains Rescaling.
                 image = image.astype("float32")
 
-                # Correct model shape
                 image = image.reshape(
                     1,
                     IMAGE_SIZE,
@@ -69,10 +66,16 @@ def home():
                     1
                 )
 
-                # Prediction
-                prediction_values = model.predict(
-                    image,
-                    verbose=0
+                # Send image to LiteRT model
+                interpreter.set_tensor(
+                    input_details[0]["index"],
+                    image
+                )
+
+                interpreter.invoke()
+
+                prediction_values = interpreter.get_tensor(
+                    output_details[0]["index"]
                 )[0]
 
                 predicted_index = np.argmax(
@@ -101,7 +104,6 @@ def home():
                         )
                     })
 
-            # Delete temporary image
             if os.path.exists(image_path):
                 os.remove(image_path)
 
